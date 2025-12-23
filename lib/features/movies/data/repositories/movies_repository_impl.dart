@@ -85,22 +85,31 @@ class MovieRepositoryImpl implements MovieRepository {
         'horarios': horarios,
       };
 
-      // Agregar imágenes si existen
+      // Convertir archivos a MultipartFile
+      List<http.MultipartFile>? files;
       if (imagenes != null && imagenes.isNotEmpty) {
-        for (int i = 0; i < imagenes.length; i++) {
-          body['imagenes'] = await http.MultipartFile.fromPath(
+        files = [];
+        for (var file in imagenes) {
+          final multipartFile = await http.MultipartFile.fromPath(
             'imagenes',
-            imagenes[i].path,
+            file.path,
           );
+          files.add(multipartFile);
         }
       }
 
-      final record = await pocketBaseService.pb.collection('peliculas').create(
-            body: body,
-            files: imagenes != null
-                ? imagenes.map((file) => http.MultipartFile.fromPath('imagenes', file.path)).toList()
-                : null,
-          );
+      // Crear con o sin archivos según corresponda
+      RecordModel record;
+      if (files != null && files.isNotEmpty) {
+        record = await pocketBaseService.pb.collection('peliculas').create(
+          body: body,
+          files: files,
+        );
+      } else {
+        record = await pocketBaseService.pb.collection('peliculas').create(
+          body: body,
+        );
+      }
 
       final movie = MovieModel.fromRecord(record, PocketBaseService.baseUrl);
       return Right(movie);
@@ -134,13 +143,33 @@ class MovieRepositoryImpl implements MovieRepository {
       if (fechaEstreno != null) body['fecha_estreno'] = fechaEstreno.toIso8601String();
       if (horarios != null) body['horarios'] = horarios;
 
-      final record = await pocketBaseService.pb.collection('peliculas').update(
-            id,
-            body: body,
-            files: newImagenes != null
-                ? newImagenes.map((file) => http.MultipartFile.fromPath('imagenes', file.path)).toList()
-                : null,
+      // Convertir archivos a MultipartFile
+      List<http.MultipartFile>? files;
+      if (newImagenes != null && newImagenes.isNotEmpty) {
+        files = [];
+        for (var file in newImagenes) {
+          final multipartFile = await http.MultipartFile.fromPath(
+            'imagenes',
+            file.path,
           );
+          files.add(multipartFile);
+        }
+      }
+
+      // Actualizar con o sin archivos según corresponda
+      RecordModel record;
+      if (files != null && files.isNotEmpty) {
+        record = await pocketBaseService.pb.collection('peliculas').update(
+          id,
+          body: body,
+          files: files,
+        );
+      } else {
+        record = await pocketBaseService.pb.collection('peliculas').update(
+          id,
+          body: body,
+        );
+      }
 
       final movie = MovieModel.fromRecord(record, PocketBaseService.baseUrl);
       return Right(movie);

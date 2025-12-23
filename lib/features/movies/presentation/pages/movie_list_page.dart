@@ -10,6 +10,7 @@ import '../bloc/movie_state.dart';
 import '../widgets/movie_card.dart';
 import 'movie_detail_page.dart';
 import 'movie_form_page.dart';
+import '../../../profile/presentation/pages/profile_page.dart';
 
 class MovieListPage extends StatefulWidget {
   const MovieListPage({super.key});
